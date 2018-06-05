@@ -40,6 +40,39 @@
 #include "Teensy64.h"
 #include "IntervalTimer.h"
 
+#if VGA
+#define BORDER         36 // Top/Bottom Screen border
+#define SCREEN_WIDTH   320
+#define LINE_MEM_WIDTH 464
+#define FIRSTDISPLAYLINE ( 51 - BORDER ) - 1
+#define LASTDISPLAYLINE  ( 284 )
+
+#define XOFFSET		    4
+#define YOFFSET		    16
+#define BORDER_LEFT     48
+#define BORDER_RIGHT    40
+typedef uint8_t tpixel ;
+#define SCREENMEM VGA_frame_buffer + LINE_MEM_WIDTH * YOFFSET + XOFFSET
+
+#else
+#include "ili9341_t64.h"
+#define TFT_HEIGHT  	240
+#define TFT_WIDTH   	320
+#define BORDER      	20
+#define SCREEN_HEIGHT (200+2*BORDER)
+#define SCREEN_WIDTH   320
+#define LINE_MEM_WIDTH 320
+#define FIRSTDISPLAYLINE (  51 - BORDER )
+#define LASTDISPLAYLINE  ( 250 + BORDER )
+
+#define BORDER_LEFT     0
+#define BORDER_RIGHT    0
+
+typedef uint16_t tpixel;
+extern uint16_t screen[TFT_HEIGHT][TFT_WIDTH];
+#define SCREENMEM (uint16_t*)&screen
+
+#endif
 
 #define SPRITE_MAX_X (320 + 24)
 
@@ -130,17 +163,6 @@ struct tvic {
 void vic_do(void);
 void vic_do_simple(void);
 void vic_displaySimpleModeScreen(void);
-void resetVic(void);
-
-void vic_do8(void);
-void vic_do_simple8(void);
-void vic_displaySimpleModeScreen8(void);
-void installPalette8(void);
-
-void vic_do16(void);
-void vic_do_simple16(void);
-void vic_displaySimpleModeScreen16(void);
-void installPalette16(void);
 
 void vic_write(uint32_t address, uint8_t value) ;
 uint8_t vic_read(uint32_t address);
@@ -150,5 +172,6 @@ uint8_t vic_colorread(uint32_t address);
 
 void vic_adrchange(void);
 
+void resetVic(void);
 
 #endif

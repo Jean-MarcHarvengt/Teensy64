@@ -1,5 +1,5 @@
 /*
-  Copyright Frank Bösing, 2017
+Copyright Frank Bösing, 2017  
 
   This file is part of Teensy64.
 
@@ -30,39 +30,39 @@
 
     Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
     Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
-
+    
 */
 
-#ifndef settings_h_
-#define settings_h_
+#ifndef Teensy64_pla_h_
+#define Teensy64_pla_h_
 
-//#define VGA             1
-//#define VGATFT          1
+#include <Arduino.h>
 
-#ifndef VGA
-#define VGA             0   //use 0 for ILI9341 Display
-#define VGATFT          0
-#endif
+#define CONSTROM const
 
-#define PS2KEYBOARD     1
-#define OSDKEYBOARD     1
-#ifndef PS2KEYBOARD
-#define PS2KEYBOARD 	0	//Use 0 for USB-HOST
-#endif
+#define MEM_BASIC_ROM 0xA000
+#define MEM_CHARSET_ROM 0xD000
+#define MEM_KERNAL_ROM  0xE000
+
+#define MEM_VIC     0xD000
+#define MEM_VICCOLOR  0xD800
+#define MEM_SID     0xD400
+#define MEM_CIA1    0xDC00
+#define MEM_CIA2    0xDD00
+
+//C64 Memory/Device access (PLA)
+
+/* READ */
+typedef uint8_t (*r_ptr_t)( uint32_t address ); //Funktionspointer auf uint8_t foo(uint16_t address);
+typedef r_ptr_t rarray_t[256];          //Array von Funktionspointern
+typedef rarray_t * r_rarr_ptr_t;        //Pointer auf Array von Funktionspointern
+
+/* WRITE */
+typedef void (*w_ptr_t)( uint32_t address, uint8_t value ); //Funktionspointer auf void foo( uint16_t address, uint8_t value );
+typedef w_ptr_t warray_t[256];                //Array von Funktionspointern
+typedef warray_t * w_rarr_ptr_t;              //Pointer auf Array von Funktionspointern
 
 
-//Note: PAL/NTSC are EMULATED - This is not the real videomode!
-#ifndef PAL
-#define PAL           1 //use 0 for NTSC
-#endif
-
-#ifndef FASTBOOT
-#define FASTBOOT      1 //0 to disable fastboot
-#endif
-
-
-#define EXACTTIMINGDURATION 600ul //ms exact timing after IEC-BUS activity
-
-
+void resetPLA(void);
 
 #endif

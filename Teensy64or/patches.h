@@ -1,7 +1,7 @@
 /*
-  Copyright Frank Bösing, 2017
+	Copyright Frank Bösing, 2017
 
-  This file is part of Teensy64.
+	This file is part of Teensy64.
 
     Teensy64 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,37 +32,16 @@
     Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
 */
+#ifndef Teensy64_patches_h_
+#define Teensy64_patches_h_
 
-#ifndef settings_h_
-#define settings_h_
+#include <SdFat.h>
+#include "cpu.h"
+#include "roms.h"
 
-//#define VGA             1
-//#define VGATFT          1
+extern SdFatSdio SD;
 
-#ifndef VGA
-#define VGA             0   //use 0 for ILI9341 Display
-#define VGATFT          0
-#endif
-
-#define PS2KEYBOARD     1
-#define OSDKEYBOARD     1
-#ifndef PS2KEYBOARD
-#define PS2KEYBOARD 	0	//Use 0 for USB-HOST
-#endif
-
-
-//Note: PAL/NTSC are EMULATED - This is not the real videomode!
-#ifndef PAL
-#define PAL           1 //use 0 for NTSC
-#endif
-
-#ifndef FASTBOOT
-#define FASTBOOT      1 //0 to disable fastboot
-#endif
-
-
-#define EXACTTIMINGDURATION 600ul //ms exact timing after IEC-BUS activity
-
-
+void patchLOAD(void);
+void patchSAVE(void);
 
 #endif

@@ -42,10 +42,8 @@
 #include <DMAChannel.h>
 #endif
 
-#define RGBVAL16(r,g,b)  ( (((r>>3)&0x1f)<<11) | (((g>>2)&0x3f)<<5) | (((b>>3)&0x1f)<<0) )
-
 #define ILI9341_TFTWIDTH  320
-#define ILI9341_TFTHEIGHT 230 //240
+#define ILI9341_TFTHEIGHT 240
 
 #define ILI9341_NOP     0x00
 #define ILI9341_SWRESET 0x01
@@ -140,25 +138,9 @@ extern uint32_t * screen32;
 class ILI9341_t3DMA : public Print
 {
   public:
-  	ILI9341_t3DMA(uint8_t _CS, uint8_t _DC, uint8_t _RST = 255, uint8_t _MOSI=11, uint8_t _SCLK=13, uint8_t _MISO=12,  uint8_t touch_cs=38,  uint8_t touch_irq=37);
-
+  	ILI9341_t3DMA(uint8_t _CS, uint8_t _DC, uint8_t _RST = 255, uint8_t _MOSI=11, uint8_t _SCLK=13, uint8_t _MISO=12);
 	void begin(void);
-	void flipscreen(bool flip);
-	void start(void);
 	void refresh(void);
-	void stop();
-	void wait(void);	
-        
-    bool isTouching() const { return (digitalRead(_touch_irq) == LOW); }
-    void readRaw(uint16_t * oX, uint16_t * oY, uint16_t * oZ);
-
-    void setArea(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2);  
-    void fillScreenNoDma(uint16_t color);
-    void writeScreenNoDma(const uint16_t *pcolors);
-    void drawTextNoDma(int16_t x, int16_t y, const char * text, uint16_t fgcolor, uint16_t bgcolor, bool doublesize);
-    void drawRectNoDma(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-    void drawSpriteNoDma(int16_t x, int16_t y, const uint16_t *bitmap);
-    void drawSpriteNoDma(int16_t x, int16_t y, const uint16_t *bitmap, uint16_t croparx, uint16_t cropary, uint16_t croparw, uint16_t croparh);
 
 	void fillScreen(uint16_t color);
 	void writeScreen(const uint16_t *pcolors);
@@ -170,6 +152,9 @@ class ILI9341_t3DMA : public Print
 		g = (color>>3)&0x00FC;
 		b = (color<<3)&0x00F8;
 	}
+
+	void start(void);
+
 	void drawPixel(int16_t x, int16_t y, uint16_t color);
 	uint16_t getPixel(int16_t x, int16_t y);
 	
@@ -188,20 +173,15 @@ class ILI9341_t3DMA : public Print
 	void drawFontChar(unsigned int c);
 	size_t write(uint8_t c) { drawFontChar(c);return 1; }
 	
-  	
  protected:
+	DMAChannel dmatx;
 	DMASetting dmasettings[SCREEN_DMA_NUM_SETTINGS];
   	uint8_t _rst, _cs, _dc;
 	uint8_t _miso, _mosi, _sclk;
-  	uint8_t _touch_irq, _touch_cs;
 	const ILI9341_t3_font_t *font;	
 	int16_t  cursor_x, cursor_y;
 	uint16_t textcolor, textbgcolor;
-    const uint16_t max_screen_width = ILI9341_TFTWIDTH-1;
-    const uint16_t max_screen_height = ILI9341_TFTHEIGHT-1;	
-	bool flipped=false;
 
-	void enableTouchIrq();
 };
 
 #endif

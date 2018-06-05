@@ -43,6 +43,13 @@ void sendKey(char key);
 void sendString(const char * p);
 void do_sendString();//call in yield()
 
+#if VGATFT
+uint16_t debounceLocalKeys(void);
+bool swapJoysticks(void);
+#endif
+bool setKey(uint32_t k);
+
+
 uint8_t cia1PORTA(void);
 uint8_t cia1PORTB(void);
 

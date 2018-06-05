@@ -43,23 +43,18 @@
 #define NTSC (!PAL)
 #define USBHOST (!PS2KEYBOARD)
 
+
 #if VGA
 #include <uVGA.h>
 extern uint8_t * VGA_frame_buffer;
 extern uVGA uvga;
-
-#if VGATFT
-#include "logo.h"
-#include "ili9341_t64.h"
-extern ILI9341_t3DMA tft;
-#endif
-
 #else
+
 #include "logo.h"
 #include "ili9341_t64.h"
 extern ILI9341_t3DMA tft;
+//#include <XPT2046_Touchscreen.h> //Not used
 #endif
-
 
 
 #if USBHOST
@@ -82,15 +77,11 @@ extern USBHost myusb;
 #define USBHS_ASYNC_OFF
 #endif
 
-extern bool vgaMode;
-
 void initMachine();
 void resetMachine() __attribute__ ((noreturn));
-void pauseMachine();
-void resumeMachine();
-bool machineIsRunning(void);
 void resetExternal();
 unsigned loadFile(const char *filename);
+
 extern uint8_t SDinitialized;
 
 
@@ -139,7 +130,6 @@ extern uint8_t SDinitialized;
 #endif
 
 #if VGA
-
 #define UVGA_240M_452X300
 #define PIN_VSYNC       29
 #define PIN_HSYNC       22
@@ -181,55 +171,6 @@ extern uint8_t SDinitialized;
 #define PIN_JOY1_A1     A12
 #define PIN_JOY1_A2     A19
 
-#if VGATFT
-
-// Pinout adaptation for this configuration
-// SPI for TFT and touch 
-#define SCK             13
-#define MISO            12
-#define MOSI            11
-#define TFT_TOUCH_CS    38
-#define TFT_TOUCH_INT   37
-#define TFT_DC          9
-#define TFT_CS          10
-#define TFT_RST         255  // 255 = unused, connected to 3.3V
-#define TFT_SCLK        SCK
-#define TFT_MOSI        MOSI
-#define TFT_MISO        MISO
-// No LED
-#undef LED_INIT
-#undef LED_ON
-#undef LED_OFF
-#undef LED_TOGGLE
-#define LED_INIT
-#define LED_ON
-#define LED_OFF
-#define LED_TOGGLE
-// Analog joystick for JOY2 and 5 extra buttons
-#define PIN_JOY2_A1X    A12  // !!!
-#define PIN_JOY2_A2Y    A13
-#define PIN_JOY2_BTN    36
-#define PIN_KEY_USER1   35
-#define PIN_KEY_USER2   34
-#define PIN_KEY_USER3   33
-#define PIN_KEY_USER4   39
-#define PIN_KEY_ESCAPE  23
-
-#define MASK_JOY2_RIGHT 0x001
-#define MASK_JOY2_LEFT  0x002
-#define MASK_JOY2_UP    0x004
-#define MASK_JOY2_DOWN  0x008
-#define MASK_JOY2_BTN   0x010
-#define MASK_JOY_SWAP   0x080
-#define MASK_KEY_USER1  0x020
-#define MASK_KEY_USER2  0x040
-#define MASK_KEY_USER3  0x080
-#define MASK_KEY_USER4  0x100
-#define MASK_KEY_ESCAPE 0x200
-
-#else
-// Original pinout for JOY2 in VGA mode
-
 #define PIN_JOY2_BTN    37
 #define PIN_JOY2_1      15
 #define PIN_JOY2_2      23
@@ -238,13 +179,11 @@ extern uint8_t SDinitialized;
 #define PIN_JOY2_A1     A13
 #define PIN_JOY2_A2     A20
 
-#endif
-
 #else //ILI9341
 
-#define SCK             14
-#define MISO            39
-#define MOSI            28
+#define SCK       14
+#define MISO      39
+#define MOSI      28
 #define TFT_TOUCH_CS    38
 #define TFT_TOUCH_INT   37
 #define TFT_DC          20
@@ -278,7 +217,6 @@ digitalWriteFast(PIN_SERIAL_DATA, (~value & 0x20)); \ //PTA15 IEC DATA 5
 #define READ_CLK_DATA() \
   (((GPIOA_PDIR >> 14) & 0x03) << 6)
 #endif
-
 
 #define PIN_JOY1_BTN     5 //PTD7
 #define PIN_JOY1_1       2 //PTD0 up

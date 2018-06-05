@@ -37,36 +37,30 @@
 #include <core_pins.h>
 #include "Teensy64.h"
 
-#include "keyboard_osd.h"
+
 
 #if VGA
 #include <uVGA.h>
 #include <uVGA_valid_settings.h>
-uVGA uvga;
-#if VGATFT
-extern uint16_t screen[ILI9341_TFTHEIGHT][ILI9341_TFTWIDTH];
-bool vgaMode = false;
-uint8_t * VGA_frame_buffer = (uint8_t *)&screen[0][0];
-ILI9341_t3DMA tft = ILI9341_t3DMA(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO, TFT_TOUCH_CS, TFT_TOUCH_INT);
-#else
 UVGA_STATIC_FRAME_BUFFER(uvga_fb);
+uVGA uvga;
 uint8_t * VGA_frame_buffer = uvga_fb;
-bool vgaMode = true;
-#endif
 
 #else
-bool vgaMode = false;    
-ILI9341_t3DMA tft = ILI9341_t3DMA(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO, TFT_TOUCH_CS, TFT_TOUCH_INT);
+ILI9341_t3DMA tft = ILI9341_t3DMA(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
 #endif
+
+#include "vic_palette.h"
 
 
 AudioPlaySID        playSID;  //xy=105,306
 AudioOutputAnalog   audioout; //xy=476,333
 AudioConnection     patchCord1(playSID, 0 , audioout, 0);
 
+
 SdFatSdio SD;
 uint8_t SDinitialized = 0;
-static bool machinePauzed = false; 
+
 
 void resetMachine() {
   *(volatile uint32_t *)0xE000ED0C = 0x5FA0004;
@@ -78,36 +72,27 @@ void resetMachine() {
 void resetExternal() {
   //perform a Reset for external devices on IEC-Bus,
   //   detachInterrupt(digitalPinToInterrupt(PIN_RESET));
+
   digitalWriteFast(PIN_RESET, 0);
   delay(50);
-  digitalWriteFast(PIN_RESET, 1); 
+  digitalWriteFast(PIN_RESET, 1);
+
 }
 
-void pauseMachine() {
-    machinePauzed = true;
-}
-
-void resumeMachine() {
-    machinePauzed = false;
-}
-
-bool machineIsRunning(void) {
-    return(!machinePauzed);
-}
 
 void oneRasterLine(void) {
   static unsigned short lc = 1;
 
   while (true) {
+
     cpu.lineStartTime = ARM_DWT_CYCCNT;
     cpu.lineCycles = cpu.lineCyclesAbs = 0;
-    if (!machinePauzed) {
-        if (!cpu.exactTiming) {
-		      vic_do();
-        } else {
-		      vic_do_simple();
-        }
-    }
+
+    if (!cpu.exactTiming) {
+		vic_do();
+	} else {
+		vic_do_simple();
+	}
 
     if (--lc == 0) {
       lc = LINEFREQ / 10; // 10Hz
@@ -235,9 +220,8 @@ void setupGPIO_DMA(void) {
 }
 
 
-
-
 void initMachine() {
+
 #if F_CPU < 240000000
 #error Teensy64: Please select F_CPU=240MHz
 #endif
@@ -271,16 +255,10 @@ void initMachine() {
 
   pinMode(PIN_RESET, OUTPUT_OPENDRAIN);
   digitalWriteFast(PIN_RESET, 1);
+
 #if !VGA
   pinMode(TFT_TOUCH_CS, OUTPUT);
   digitalWriteFast(TFT_TOUCH_CS, 1);
-#endif
-
-
-#if VGATFT
-  pinMode(PIN_JOY2_BTN, INPUT_PULLUP);
-  delay(100);
-  vgaMode = (digitalRead(PIN_JOY2_BTN) == HIGH ? false : true);
 #endif
 
   LED_INIT;
@@ -294,32 +272,18 @@ void initMachine() {
 #endif
 
 #if VGA
-  int retvga = 0;
-  if (vgaMode) {
-    uvga.set_static_framebuffer(VGA_frame_buffer);
-    retvga = uvga.begin(&modeline);
-    uvga.clear(0x00);
-  }
-#endif  
-  
-#if VGA && !VGATFT
-#else  
+
+  uvga.set_static_framebuffer(VGA_frame_buffer);
+  uvga.begin(&modeline);
+  uvga.clear(0x00);
+ // for (int i =0; i<299;i++) memset(VGA_frame_buffer + i*464, palette[14], 452-(37));
+
+#else
+
   tft.begin();
-#if VGATFT
-  tft.flipscreen(true);
-#endif 
-  if (!vgaMode) {    
-    tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
-    tft.writeScreen((uint16_t*)logo_320x240);
-    tft.refresh();
-  }
-  else {
-    tft.start();
-    tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
-    tft.writeScreenNoDma((uint16_t*)logo_320x240);
-    // In VGA mode, we show the keyboard on TFT
-    toggleVirtualkeyboard(true); // keepOn
-  }
+  tft.writeScreen((uint16_t*)logo_320x240);
+  tft.refresh();
+
 #endif
 
   SDinitialized = SD.begin();
@@ -377,17 +341,6 @@ void initMachine() {
   Serial.print("sizeof(tcpu) (Bytes): ");
   Serial.println(sizeof(tcpu));
 
-#if VGA
-  if(retvga != 0)
-  {
-    Serial.println("VGA display fatal error");
-    Serial.println(retvga);
-  }
-  else {
-    Serial.println("VGA display was initialized!!!");
-  }
-#endif
-
   Serial.println();
 
   resetPLA();
@@ -418,43 +371,8 @@ void initMachine() {
   attachInterrupt(digitalPinToInterrupt(PIN_RESET), resetMachine, RISING);
 
   listInterrupts();
-  
-#if VGA && !VGATFT
-#else  
-  while (true) {
-    handleVirtualkeyboard();
-#if VGATFT
-    uint16_t bClick = debounceLocalKeys();
-    if (bClick & MASK_KEY_ESCAPE) { 
-      resetMachine(); 
-    }
-    if ( (bClick & MASK_KEY_USER1) )  { 
-      if (swapJoysticks()) {
-          if ( (vgaMode) || (virtualkeyboardIsActive()) ) {
-              tft.drawTextNoDma( 240,100, "SWAPPED", RGBVAL16(0x00,0x00,0x00), RGBVAL16(0xff,0x00,0x00), true);
-          }
-      }
-      else {
-          if ( (vgaMode) || (virtualkeyboardIsActive()) ) {
-              tft.drawTextNoDma( 240,100, "SWAPPED", RGBVAL16(0x00,0xff,0xff), RGBVAL16(0xff,0x00,0x00), true);
-          }
-      } 
-    }
-    if (bClick & MASK_KEY_USER2) {
-      if (!vgaMode) {
-          toggleVirtualkeyboard(false); // toggle mode
-      }  
-    }
-    if (bClick & MASK_KEY_USER3) {  
-    }
-    if (bClick & MASK_KEY_USER4) {
-    }    
-#endif    
-    delay(50);    
-  } 
-#endif 
-}
 
+}
 
 
 // Switch off/replace Teensyduinos` yield and systick stuff
@@ -466,7 +384,6 @@ void yield(void) {
   running = 1;
 
   //Input via terminal to keyboardbuffer (for BASIC only)
-  
   if ( Serial.available() ) {
     uint8_t r = Serial.read();
     sendKey(r);
@@ -474,9 +391,8 @@ void yield(void) {
   }
   do_sendString();
 
-#if !PS2KEYBOARD
   myusb.Task();
-#endif  
+  
   running = 0;
 };
 

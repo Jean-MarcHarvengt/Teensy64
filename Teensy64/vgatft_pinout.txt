@@ -1,0 +1,26 @@
+pinout
+
+   EVVVLRDU V  AAUTTFUUU
+   SGGGEIOP GS UUSCIISSS
+   CAAAFGW2 AC DDRSRRRRR
+    HRRTHN  BK RL4 QE123
+       2T2          2
+        2 
+   ******** ************
+VA322221111111GDD3333333
+IN.32109876543NAA9876543
+NG3           DCC
+  V            10 
+
+
+
+   VASVVVVDCMM PRCPDVFJJ 
+   GTRGGGGCSOI SELSAGIOO
+   ANQAAAA  SS 2SK2TARYY
+   B  RGGG  IO IE DAVEXY
+               NT A  1
+*  *  *********     ****
+G00000000001113222222333
+N0123456789012.456789012
+D             3 
+              V 

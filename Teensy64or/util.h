@@ -1,7 +1,7 @@
 /*
-  Copyright Frank Bösing, 2017
+Copyright Frank Bösing, 2017
 
-  This file is part of Teensy64.
+	This file is part of Teensy64.
 
     Teensy64 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,36 +33,30 @@
 
 */
 
-#ifndef settings_h_
-#define settings_h_
-
-//#define VGA             1
-//#define VGATFT          1
-
-#ifndef VGA
-#define VGA             0   //use 0 for ILI9341 Display
-#define VGATFT          0
-#endif
-
-#define PS2KEYBOARD     1
-#define OSDKEYBOARD     1
-#ifndef PS2KEYBOARD
-#define PS2KEYBOARD 	0	//Use 0 for USB-HOST
-#endif
+#ifndef _UTIL_C64H_
+#define _UTIL_C64H_
 
 
-//Note: PAL/NTSC are EMULATED - This is not the real videomode!
-#ifndef PAL
-#define PAL           1 //use 0 for NTSC
-#endif
-
-#ifndef FASTBOOT
-#define FASTBOOT      1 //0 to disable fastboot
-#endif
+#define AudioNoInterrupts() (NVIC_DISABLE_IRQ(IRQ_SOFTWARE))
+#define AudioInterrupts()   (NVIC_ENABLE_IRQ(IRQ_SOFTWARE))
 
 
-#define EXACTTIMINGDURATION 600ul //ms exact timing after IEC-BUS activity
+void disableEventResponder(void);
 
+void enableCycleCounter(void);
+inline unsigned fbmillis(void)  __attribute__((always_inline));
+inline unsigned fbmicros(void)  __attribute__((always_inline));
+inline unsigned fbnanos(void) __attribute__((always_inline));
+
+
+unsigned fbmillis(void) { return (ARM_DWT_CYCCNT * (1000.0/F_CPU)); }
+unsigned fbmicros(void) { return (ARM_DWT_CYCCNT * (1000000.0/F_CPU)); }
+unsigned fbnanos(void) { return (ARM_DWT_CYCCNT * (1000000000.0 / F_CPU)); }
+
+float setAudioSampleFreq(float freq);
+void setAudioOff(void);
+void setAudioOn(void);
+void listInterrupts();
 
 
 #endif
