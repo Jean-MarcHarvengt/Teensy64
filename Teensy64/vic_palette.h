@@ -37,11 +37,7 @@
 
 #if 1 // color display (default)
 
-#if VGA
-#define PALETTE(r,g,b) (((r & 0xE0)) | ((g & 0xE0) >> 3) | ((b & 0xC0) >> 6) )
-#else
-#define PALETTE(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3))
-#endif
+// MACROS moved to vic8 and vic16 implementations
 
 #elif 0 // B&W TV for real retro feeling. Looks great (ILI 9341 only)
 #define PALETTE(r,g,b) ( ((((int)( 0.299f * r + 0.587f * g + 0.114f * b )) & 0xF8) << 8 ) | \
